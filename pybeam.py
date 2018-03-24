@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 import numpy as np
 import scipy.signal
 import scipy.io.wavfile
@@ -137,8 +139,7 @@ def map_filters(filters, signal):
     #butterworth filter
     filtb, filta = scipy.signal.butter(8, 0.25)
     o = scipy.signal.filtfilt(filtb, filta, o)
-    o = np.round(o.real).astype(signal.dtype)
-    o = o[::-1, ...]
+    o = o.astype(signal.dtype)
 
     return o
 
@@ -192,20 +193,9 @@ def playback_wav_dir(directory, chunks=1024):
         streams[mapping[i]].cloase()
     p.terminate()
 
-
-    
-    
-    
-        
-
-
-
 if __name__ == '__main__':
     print('Y =', get_source_matrix())
     print('X =', get_verification_matrix())
     print('q_DAS =', get_DAS_filters())
     print('q_PM =', get_PM_filters())
     
-    
-  
-
