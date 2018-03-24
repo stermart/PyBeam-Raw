@@ -123,7 +123,7 @@ def map_filters(filters, signal):
     o = np.zeros((L, len(signal)), dtype="complex_")
     for i in range(0, len(signal), samples//4):
         snapshot = np.pad(signal[i:i+samples],
-                    (0, samps - len(signal[i:i+samples])),
+                    (0, samples - len(signal[i:i+samples])),
                     'constant',
                     constant_values=0)
         snapshot_fft = np.fft.fft(snapshot)
@@ -139,7 +139,7 @@ def map_filters(filters, signal):
     #butterworth filter
     filtb, filta = scipy.signal.butter(8, 0.25)
     o = scipy.signal.filtfilt(filtb, filta, o)
-    o = o.astype(signal.dtype)
+    o = o.real.astype(signal.dtype)
 
     return o
 
@@ -153,7 +153,7 @@ def write_wav_dir(directory, output_signal, mapping, samp_freq=44100):
     for i in range(0, output_signal.shape[0], 2):
         scipy.io.wavfile.write('{}/speaker{:d}.wav'.format(directory, i),
             samp_freq,
-            output_signal[i:i+2])
+            output_signal[i:i+2].T)
     pkl.dump(mapping, open('{}/mapping.pkl'.format(directory), 'wb'))
 
 #mapping = speaker pair # -> input id
@@ -161,14 +161,14 @@ def write_wav_dir(directory, output_signal, mapping, samp_freq=44100):
 def playback_wav_dir(directory, chunks=1024):
    
     #read mapping
-    mapping = pkl.load('{}/mapping.pkl'.format(directory))
+    mapping = pkl.load(open('{}/mapping.pkl'.format(directory), 'rb'))
     nstreams = len(mapping)
     p = pa.PyAudio()
     
     #read wav files
     wfiles = {}
     for i in range(nstreams):
-        wavfile = wave.open('{}/speaker{:d}.wav'.format(i), 'rb')
+        wavfile = wave.open('{}/speaker{:d}.wav'.format(directory, i), 'rb')
         wfiles[mapping[i]] = wavfile
     
     #create streams
@@ -179,18 +179,18 @@ def playback_wav_dir(directory, chunks=1024):
             channels=wfiles[mapping[i]].getnchannels(),
             rate=wfiles[mapping[i]].getframerate(),
             output=True,
-            output_device_indes=mapping[i])
+            output_device_index=mapping[i])
     
     #playback wav files
     data = [wfiles[mapping[i]].readframes(chunks) for i in range(nstreams)]
-    while not all([data[i]=='' for i in range(nstreams)]):
+    while not all([len(data[i]) == 0 for i in range(nstreams)]):
         for i in range(nstreams): streams[mapping[i]].write(data[i])
         data = [wfiles[mapping[i]].readframes(chunks) for i in range(nstreams)]
     
     #close up shop
     for i in range(nstreams):
         streams[mapping[i]].stop_stream()
-        streams[mapping[i]].cloase()
+        streams[mapping[i]].close()
     p.terminate()
 
 if __name__ == '__main__':
