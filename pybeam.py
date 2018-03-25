@@ -184,9 +184,11 @@ def playback_wav_dir(directory, chunks=1024):
     #playback wav files
     data = [wfiles[mapping[i]].readframes(chunks) for i in range(nstreams)]
     while not all([len(data[i]) == 0 for i in range(nstreams)]):
+        print([len(_) for _ in data])
         for i in range(nstreams): streams[mapping[i]].write(data[i])
         data = [wfiles[mapping[i]].readframes(chunks) for i in range(nstreams)]
-    
+    print([len(_) for _ in data])
+
     #close up shop
     for i in range(nstreams):
         streams[mapping[i]].stop_stream()
