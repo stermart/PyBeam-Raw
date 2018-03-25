@@ -151,7 +151,7 @@ def read_wav_file(fname):
 def write_wav_dir(directory, output_signal, mapping, samp_freq=44100):
     os.mkdir(directory)
     for i in range(0, output_signal.shape[0], 2):
-        scipy.io.wavfile.write('{}/speaker{:d}.wav'.format(directory, i),
+        scipy.io.wavfile.write('{}/speaker{:d}.wav'.format(directory, i//2),
             samp_freq,
             output_signal[i:i+2].T)
     pkl.dump(mapping, open('{}/mapping.pkl'.format(directory), 'wb'))

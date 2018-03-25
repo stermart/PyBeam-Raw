@@ -2,7 +2,7 @@
 
 import pybeam
 
-Y = pybeam.get_source_matrix()
+Y = pybeam.get_source_matrix(dim=(4,1))
 print(Y, flush=True)
 
 X = pybeam.get_verification_matrix(b=(45,90))
@@ -17,10 +17,10 @@ print(Q, flush=True)
 output = pybeam.map_filters(Q, sig)
 print(output, flush=True)
 
-mapping = {0:4}
-pybeam.write_wav_dir('ex1', output, mapping, samp_freq)
+mapping = {0:4, 1:5}
+pybeam.write_wav_dir('ex2', output, mapping, samp_freq)
 
-pybeam.playback_wav_dir('ex1')
+pybeam.playback_wav_dir('ex2')
 
 
 
