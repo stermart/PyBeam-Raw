@@ -106,5 +106,3 @@ venv.bak/
 # vim swp files
 .swp
 
-# example directories
-ex*/
