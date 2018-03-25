@@ -1,3 +1,3 @@
 import pickle
 
-pickle.dump({0:1}, open('mapping.pkl', 'wb'))
+pickle.dump({0:3}, open('mapping.pkl', 'wb'))
