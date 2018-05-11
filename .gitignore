@@ -106,3 +106,7 @@ venv.bak/
 # vim swp files
 .swp
 
+# project specific things
+bform_out*/
+btest*.wav
+
