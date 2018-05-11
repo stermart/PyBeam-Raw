@@ -17,7 +17,8 @@ print(Q, flush=True)
 output = pybeam.map_filters(Q, sig)
 print(output, flush=True)
 
-mapping = {0:3}
+mapping = {0:6}
+
 pybeam.write_wav_dir('ex1', output, mapping, samp_freq)
 
 pybeam.playback_wav_dir('ex1')

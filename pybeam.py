@@ -5,6 +5,7 @@ import scipy.signal
 import scipy.io.wavfile
 import os
 import sys
+import shutil
 import pickle as pkl
 import wave
 import pyaudio as pa
@@ -86,16 +87,18 @@ def get_target_sound_pressures(onval=1, offval=0, X=get_verification_matrix()):
 
 def get_PM_filters(X=get_verification_matrix(), Y=get_source_matrix(),
     samp_freq=44100, samples=1024, modeling_delay=0, 
-    E_max=get_max_energy(), p_hat=get_target_sound_pressures()):
+    E_max=get_max_energy(), p_hat=get_target_sound_pressures(),
+    verbose=False):
         M, L, p_b_hat = X.shape[0], Y.shape[0], p_hat[0]
         W = lambda q, z_b: (p_b_hat / np.dot(z_b, q))[0, 0]
         E = lambda q: np.dot(np.conjugate(q).T, q)[0, 0]
         epsilon_beta, beta_min = 1e-5, 1e-19
         freqs = np.fft.fftfreq(samples, 1 / samp_freq)
         q_PM = np.asmatrix(np.zeros((freqs.size, L), dtype="complex_"))
-        
+
         for i in range(len(freqs)):
             freq = freqs[i]
+            if(verbose): print('frequency:', freq, flush=True)
             omega = 2 * np.pi * freq
             beta = beta_min
             Z = np.asmatrix(np.zeros((M, L), dtype="complex_"))
@@ -137,8 +140,8 @@ def map_filters(filters, signal):
     o *= scaling_factor
     
     #butterworth filter
-    filtb, filta = scipy.signal.butter(8, 0.25)
-    o = scipy.signal.filtfilt(filtb, filta, o)
+    #filtb, filta = scipy.signal.butter(8, 0.5)
+    #o = scipy.signal.filtfilt(filtb, filta, o)
     o = o.real.astype(signal.dtype)
 
     return o
@@ -149,6 +152,8 @@ def read_wav_file(fname):
     return ret1[1], ret1[0], ret2
 
 def write_wav_dir(directory, output_signal, mapping, samp_freq=44100):
+    if os.path.exists(directory):
+        shutil.rmtree(directory)
     os.mkdir(directory)
     for i in range(0, output_signal.shape[0], 2):
         scipy.io.wavfile.write('{}/speaker{:d}.wav'.format(directory, i//2),
@@ -184,10 +189,10 @@ def playback_wav_dir(directory, chunks=1024):
     #playback wav files
     data = [wfiles[mapping[i]].readframes(chunks) for i in range(nstreams)]
     while not all([len(data[i]) == 0 for i in range(nstreams)]):
-        print([len(_) for _ in data])
+        #print([len(_) for _ in data])
         for i in range(nstreams): streams[mapping[i]].write(data[i])
         data = [wfiles[mapping[i]].readframes(chunks) for i in range(nstreams)]
-    print([len(_) for _ in data])
+    #print([len(_) for _ in data])
 
     #close up shop
     for i in range(nstreams):
