@@ -109,4 +109,4 @@ venv.bak/
 # project specific things
 bform_out*/
 btest*.wav
-
+soundMeasureResults/
