@@ -9,6 +9,7 @@ import shutil
 import pickle as pkl
 import wave
 import pyaudio as pa
+import matplotlib.pyplot as plt
 
 __c = 343 #speed of sound
 __l2 = lambda arr: np.sqrt(np.sum(arr**2))
@@ -140,8 +141,8 @@ def map_filters(filters, signal):
     o *= scaling_factor
     
     #butterworth filter
-    #filtb, filta = scipy.signal.butter(8, 0.5)
-    #o = scipy.signal.filtfilt(filtb, filta, o)
+    filtb, filta = scipy.signal.butter(8, 0.5)
+    o = scipy.signal.filtfilt(filtb, filta, o)
     o = o.real.astype(signal.dtype)
 
     return o
@@ -199,6 +200,47 @@ def playback_wav_dir(directory, chunks=1024):
         streams[mapping[i]].stop_stream()
         streams[mapping[i]].close()
     p.terminate()
+
+def visualize(Q, X, Y, onval=1, R=3, test_index=100, 
+    sample_size=1024, rate=44100, verbose=False):
+        M, L = X.shape[0], Y.shape[0]
+        M_test = int((R+1)**2 * 2e4)
+        if(verbose): print(M_test)
+        X_test = np.ones((M_test, 3))
+        n = 0
+        for i in range(-100 * (R+1), 100 * (R+1)):
+            for j in range(0, 100 * (R+1)):
+                X_test[n] = np.array([i / 100, j / 100, 0])
+                n += 1 
+        Z = np.asmatrix(np.zeros((M_test, L), dtype='complex_'))
+        freq = np.fft.fftfreq(sample_size, 1 / rate)[test_index]
+        omega = 2 * np.pi * freq
+        if(verbose): 
+            print('Freq:{:.0f}, AngVel:{:.0f}'.format(freq, omega), flush=True)
+        for m in range(M_test):
+            if m % 10000 == 0 and verbose: print(m, M_test, flush=True)
+            for l in range(L):
+                if __l2(X_test[m] - Y[l]) != 0:
+                    Z[m, l] = __Zf(X_test[m], Y[l], omega)
+                else:
+                    Z[m, l] = 0
+        p_test = Z * Q[test_index].T
+
+        output = np.ones(((R+1)*100, 2*(R+1)*100))
+        for n in range(X_test.shape[0]):
+            output[(R+1)*100 - 1 - int(X_test[n, 1]*100), int(X_test[n, 0] * 100 + (R+1)*100)] = np.abs(p_test[n, 0])
+        fig = plt.figure()
+        plt.scatter(np.asarray(np.concatenate((X, Y))[:, 0]), 
+            np.concatenate((X, Y))[:, 1], 
+            c=['b'] + ['r']*(M-1) + ['g']*L, marker='o')
+        implot = plt.imshow(output, interpolation='nearest', cmap='inferno', extent=[-R-1, R+1, 0, R+1], vmin=0, vmax=onval)
+        plt.colorbar()
+        plt.title("{:.0f}Hz".format(freq), fontsize=32)
+        plt.xlabel("x, [m]", fontsize=12)
+        plt.ylabel("y, [m]", fontsize=12)
+        plt.show()
+    
+    
 
 if __name__ == '__main__':
     print('Y =', get_source_matrix())
