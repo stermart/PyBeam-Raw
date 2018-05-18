@@ -202,15 +202,15 @@ def playback_wav_dir(directory, chunks=1024):
     p.terminate()
 
 def visualize(Q, X, Y, onval=1, R=3, test_index=100, 
-    sample_size=1024, rate=44100, verbose=False):
+    dpu=100, sample_size=1024, rate=44100, verbose=False):
         M, L = X.shape[0], Y.shape[0]
-        M_test = int((R+1)**2 * 2e4)
+        M_test = int((R+1)**2 * dpu**2 * 2)
         if(verbose): print(M_test)
         X_test = np.ones((M_test, 3))
         n = 0
-        for i in range(-100 * (R+1), 100 * (R+1)):
-            for j in range(0, 100 * (R+1)):
-                X_test[n] = np.array([i / 100, j / 100, 0])
+        for i in range(-dpu * (R+1), dpu * (R+1)):
+            for j in range(0, dpu * (R+1)):
+                X_test[n] = np.array([i / dpu, j / dpu, 0])
                 n += 1 
         Z = np.asmatrix(np.zeros((M_test, L), dtype='complex_'))
         freq = np.fft.fftfreq(sample_size, 1 / rate)[test_index]
@@ -225,15 +225,34 @@ def visualize(Q, X, Y, onval=1, R=3, test_index=100,
                 else:
                     Z[m, l] = 0
         p_test = Z * Q[test_index].T
+        
 
-        output = np.ones(((R+1)*100, 2*(R+1)*100))
+        output = np.zeros(((R+1)*dpu, 2*(R+1)*dpu))
         for n in range(X_test.shape[0]):
-            output[(R+1)*100 - 1 - int(X_test[n, 1]*100), int(X_test[n, 0] * 100 + (R+1)*100)] = np.abs(p_test[n, 0])
+            output[(R+1)*dpu - 1 - int(X_test[n, 1]*dpu), int(X_test[n, 0] * dpu + (R+1)*dpu)] = np.abs(p_test[n, 0])
+        for i in range(output.shape[0]):
+            for j in range(output.shape[1]):
+                if output[i, j] == 0:
+                    denom = 0
+                    if i + 1 < output.shape[0] and output[i + 1, j] != 0:
+                        output[i, j] += output[i + 1, j]
+                        denom += 1
+                    if i - 1 >= 0 and output[i - 1, j] != 0:
+                        output[i, j] += output[i - 1, j]
+                        denom += 1
+                    if j + 1 < output.shape[1] and output[i, j + 1] != 0:
+                        output[i, j] += output[i, j + 1]
+                        denom += 1
+                    if j - 1 >= 0 and output[i, j - 1] != 0:
+                        output[i, j] += output[i, j - 1]
+                        denom += 1
+                    if denom > 0:    
+                        output[i, j] /= denom
         fig = plt.figure()
         plt.scatter(np.asarray(np.concatenate((X, Y))[:, 0]), 
             np.concatenate((X, Y))[:, 1], 
             c=['b'] + ['r']*(M-1) + ['g']*L, marker='o')
-        implot = plt.imshow(output, interpolation='nearest', cmap='inferno', extent=[-R-1, R+1, 0, R+1], vmin=0, vmax=onval)
+        implot = plt.imshow(output, interpolation='hamming', cmap='inferno', extent=[-R-1, R+1, 0, R+1], vmin=0, vmax=onval)
         plt.colorbar()
         plt.title("{:.0f}Hz".format(freq), fontsize=32)
         plt.xlabel("x, [m]", fontsize=12)

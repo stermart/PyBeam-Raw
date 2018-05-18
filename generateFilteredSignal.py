@@ -7,10 +7,10 @@ import numpy as np
 Y = pybeam.get_source_matrix(dim=(16,1), delta=(0.02,0))
 print('source', Y, flush=True)
 
-X = pybeam.get_verification_matrix(R=3, dim=(7,1), b=(90,90))
+X = pybeam.get_verification_matrix(R=3, dim=(37,1), b=(90,90))
 print('verification', X, flush=True)
 
-sig, samp_freq, dtype = pybeam.read_wav_file('btest.wav')
+sig, samp_freq, dtype = pybeam.read_wav_file('btest8.wav')
 print('signal', sig, samp_freq, dtype, sep='\n', flush=True)
 
 Q = pybeam.get_PM_filters(X=X, Y=Y, 
@@ -32,10 +32,10 @@ mapping = pkl.load(open('mastermap.pkl', 'rb'))
 print('mapping', mapping, flush=True)
 
 print('writing wav dir', flush=True)
-pybeam.write_wav_dir('bform_outPM', output, mapping, samp_freq)
+pybeam.write_wav_dir('bform_out8PM', output, mapping, samp_freq)
 
 print('Plotting Visualization', flush=True)
-pybeam.visualize(Q, X, Y, onval=1, R=3, test_index=40, verbose=True)
+pybeam.visualize(Q, X, Y, onval=1, R=3, test_index=40, dpu=35, verbose=True)
 
 
 
