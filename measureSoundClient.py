@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import socket
 import sys
 
-host = "10.16.188.11"
+host = "192.168.1.162"
 port = 5007
 secs = 20
 
@@ -24,7 +24,7 @@ stream = p.open(format=pa.paInt16,
     rate=44100, 
     input=True, 
     frames_per_buffer=1024,
-    input_device_index=1)
+    input_device_index=2)
 
 
 if os.path.exists('soundMeasureResults'):
@@ -38,10 +38,11 @@ for i in range(100):
     print('Data received: {}'.format(data), flush=True) 
 
     raw_data = stream.read(secs*44100, exception_on_overflow=False)
+    print('Done recording!', flush=True)
     data = np.fromstring(raw_data, dtype='int16')
     chunk_length = len(data) // 2
     data = np.reshape(data, (chunk_length, 2))
-    data = data.astype('int32')
+    data = data.astype('int32')*50
     sample = (data[:, 0] + data[:, 1]) // 2
     print(sample)
 
