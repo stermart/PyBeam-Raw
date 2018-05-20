@@ -42,8 +42,8 @@ for i in range(100):
     data = np.fromstring(raw_data, dtype='int16')
     chunk_length = len(data) // 2
     data = np.reshape(data, (chunk_length, 2))
-    data = data.astype('int32')*50
-    sample = (data[:, 0] + data[:, 1]) // 2
+    sample = data.astype('int32')*50
+    #sample = (data[:, 0] + data[:, 1]) // 2
     print(sample)
 
     #print(sample.shape)
