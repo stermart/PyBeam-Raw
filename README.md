@@ -1,3 +1,3 @@
-# PyBeam
+# PyBeam-Raw
 
-A python library designed to easily beamform signals.
+Raw files and programs used to understand/test my beamforming array.
