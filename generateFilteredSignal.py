@@ -1,8 +1,12 @@
 #!/usr/bin/python
 
-import pybeam
+import sys
+import os
 import pickle as pkl
 import numpy as np
+sys.path.insert(0, os.path.abspath('../PyBeam'))
+import pybeam
+
 
 Y = pybeam.get_source_matrix(dim=(16,1), delta=(0.02,0))
 print('source', Y, flush=True)
@@ -10,7 +14,7 @@ print('source', Y, flush=True)
 X = pybeam.get_verification_matrix(R=3, dim=(37,1), b=(90,90))
 print('verification', X, flush=True)
 
-sig, samp_freq, dtype = pybeam.read_wav_file('btest8.wav')
+sig, samp_freq, dtype = pybeam.read_wav_file('btest3.wav')
 print('signal', sig, samp_freq, dtype, sep='\n', flush=True)
 
 Q = pybeam.get_PM_filters(X=X, Y=Y, 
@@ -19,10 +23,6 @@ Q = pybeam.get_PM_filters(X=X, Y=Y,
     verbose=True
 )
 #Q = pybeam.get_DAS_filters(X=X, Y=Y)
-#print(Q.shape)
-#print(Q)
-#Q = np.asmatrix(np.ones(Q.shape, dtype="complex_"))
-#print(Q.shape)
 print('filters', Q, flush=True)
 
 output = pybeam.map_filters(Q, sig)

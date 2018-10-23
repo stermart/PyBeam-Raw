@@ -13,6 +13,7 @@ speakers = {}
 
 for i in range(p.get_device_count()):
     curr = p.get_device_info_by_index(i)
+    # change this line below to match your particular kind of speaker
     if "USB Audio Device" in curr['name'] and curr['maxOutputChannels'] > 0 and curr['name'] not in speakers:
         speakers[curr['name']] = curr['index']
 
